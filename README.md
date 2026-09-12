@@ -7,7 +7,9 @@ up new containers.
 ## Prerequisites
 
 - Docker
-- `docker-compose` (the standalone binary) or the `docker compose` plugin
+- The `docker compose` CLI plugin (v2) — commands below assume `docker compose`,
+  not the older standalone `docker-compose` (v1) binary, which has known bugs
+  rebuilding containers
 
 ## First run
 
@@ -15,7 +17,7 @@ up new containers.
 cp .env.example .env
 # edit .env: set real passwords and a HASH_SALT (openssl rand -hex 32)
 
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
 On first start, the `web` container waits for the database, runs
@@ -29,7 +31,7 @@ Once it's up, install the default site (run as `www-data`, not root, so
 Drupal — and any files it creates — don't end up root-owned on your host):
 
 ```bash
-docker-compose exec --user www-data web drush site:install -y
+docker compose exec --user www-data web drush site:install -y
 ```
 
 `settings.php` is gitignored: Drupal's installer requires it to be writable
@@ -42,7 +44,7 @@ as the admin user with a one-time link instead of a password you'd have to
 remember:
 
 ```bash
-docker-compose exec --user www-data web drush uli
+docker compose exec --user www-data web drush uli
 ```
 
 ## Adding another site
@@ -53,7 +55,7 @@ the default site.
 
 ```bash
 scripts/add-site.sh blog blog.example.com
-docker-compose exec --user www-data web drush site:install --sites-subdir=blog -y
+docker compose exec --user www-data web drush site:install --sites-subdir=blog -y
 ```
 
 The script prints the generated DB credentials and finishes by registering
@@ -66,13 +68,13 @@ To reach the new site locally, point the domain at this machine (e.g. add
 ## Useful commands
 
 ```bash
-docker-compose exec --user www-data web drush status          # check bootstrap for the default site
-docker-compose exec --user www-data web drush --uri=blog.example.com status
-docker-compose exec --user www-data web drush uli                          # one-time admin login link, default site
-docker-compose exec --user www-data web drush uli --uri=blog.example.com   # same, for another site
-docker-compose exec --user www-data web drush user:password admin 'newpass' # set a real password instead, if you want one
-docker-compose logs -f web
-docker-compose down                                            # stop (add -v to also wipe the DB volume)
+docker compose exec --user www-data web drush status          # check bootstrap for the default site
+docker compose exec --user www-data web drush --uri=blog.example.com status
+docker compose exec --user www-data web drush uli                          # one-time admin login link, default site
+docker compose exec --user www-data web drush uli --uri=blog.example.com   # same, for another site
+docker compose exec --user www-data web drush user:password admin 'newpass' # set a real password instead, if you want one
+docker compose logs -f web
+docker compose down                                            # stop (add -v to also wipe the DB volume)
 ```
 
 ## Layout

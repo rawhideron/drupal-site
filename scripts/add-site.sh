@@ -30,7 +30,7 @@ fi
 
 if [ ! -f "web/sites/default/default.settings.php" ]; then
     echo "web/sites/default/default.settings.php not found." >&2
-    echo "Run 'docker-compose up -d' first so Composer can scaffold Drupal core." >&2
+    echo "Run 'docker compose up -d' first so Composer can scaffold Drupal core." >&2
     exit 1
 fi
 
@@ -58,12 +58,12 @@ cat >> "web/sites/${NAME}/settings.php" <<PHP
 \$settings['file_private_path'] = 'sites/${NAME}/private';
 PHP
 
-docker-compose exec -T --user root web chown www-data:www-data \
+docker compose exec -T --user root web chown www-data:www-data \
     "web/sites/${NAME}/files" "web/sites/${NAME}/private" "web/sites/${NAME}/settings.php" \
     || echo "Warning: could not chown web/sites/${NAME}/{files,private,settings.php} inside the web container; run it manually before installing (see README)." >&2
 
 echo "Creating database ${DB_NAME_NEW}..."
-docker-compose exec -T db mariadb -uroot -p"${DB_ROOT_PASSWORD}" <<SQL
+docker compose exec -T db mariadb -uroot -p"${DB_ROOT_PASSWORD}" <<SQL
 CREATE DATABASE IF NOT EXISTS \`${DB_NAME_NEW}\`;
 CREATE USER IF NOT EXISTS '${DB_USER_NEW}'@'%' IDENTIFIED BY '${DB_PASS_NEW}';
 GRANT ALL PRIVILEGES ON \`${DB_NAME_NEW}\`.* TO '${DB_USER_NEW}'@'%';
@@ -76,6 +76,6 @@ sed -i "/MULTISITE_MAP_START/a\\  '${DOMAIN}' => '${NAME}'," web/sites/sites.php
 echo ""
 echo "Site '${NAME}' is set up for domain '${DOMAIN}'."
 echo "Finish the install with:"
-echo "  docker-compose exec --user www-data web drush site:install --sites-subdir=${NAME} -y"
+echo "  docker compose exec --user www-data web drush site:install --sites-subdir=${NAME} -y"
 echo ""
 echo "Then make sure requests for '${DOMAIN}' reach this container (e.g. an /etc/hosts entry pointing at 127.0.0.1) and are sent with that Host header."
