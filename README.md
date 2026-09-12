@@ -29,7 +29,7 @@ Once it's up, install the default site (run as `www-data`, not root, so
 Drupal — and any files it creates — don't end up root-owned on your host):
 
 ```bash
-docker-compose exec --user www-data web drush site:install --account-pass=admin -y
+docker-compose exec --user www-data web drush site:install -y
 ```
 
 `settings.php` is gitignored: Drupal's installer requires it to be writable
@@ -37,7 +37,13 @@ and rewrites it with the resolved (literal) DB credentials during install,
 so it can't stay a clean, secret-free file once a site is actually installed.
 The committed template is what's used to (re)create it.
 
-Then visit http://localhost:8080 (or whatever `WEB_PORT` you set).
+Then visit http://localhost:8080 (or whatever `WEB_PORT` you set), and log in
+as the admin user with a one-time link instead of a password you'd have to
+remember:
+
+```bash
+docker-compose exec --user www-data web drush uli
+```
 
 ## Adding another site
 
@@ -62,6 +68,9 @@ To reach the new site locally, point the domain at this machine (e.g. add
 ```bash
 docker-compose exec --user www-data web drush status          # check bootstrap for the default site
 docker-compose exec --user www-data web drush --uri=blog.example.com status
+docker-compose exec --user www-data web drush uli                          # one-time admin login link, default site
+docker-compose exec --user www-data web drush uli --uri=blog.example.com   # same, for another site
+docker-compose exec --user www-data web drush user:password admin 'newpass' # set a real password instead, if you want one
 docker-compose logs -f web
 docker-compose down                                            # stop (add -v to also wipe the DB volume)
 ```
