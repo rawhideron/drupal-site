@@ -41,10 +41,12 @@ The committed template is what's used to (re)create it.
 
 Then visit http://localhost:8080 (or whatever `WEB_PORT` you set), and log in
 as the admin user with a one-time link instead of a password you'd have to
-remember:
+remember. Pass `--uri` (matching `WEB_PORT`) so the printed link is directly
+clickable — without it, Drush doesn't know what host/port you're using and
+prints a placeholder you'd have to edit by hand:
 
 ```bash
-docker compose exec --user www-data web drush uli
+docker compose exec --user www-data web drush uli --uri=http://localhost:8080
 ```
 
 ## Adding another site
@@ -69,9 +71,9 @@ To reach the new site locally, point the domain at this machine (e.g. add
 
 ```bash
 docker compose exec --user www-data web drush status          # check bootstrap for the default site
-docker compose exec --user www-data web drush --uri=blog.example.com status
-docker compose exec --user www-data web drush uli                          # one-time admin login link, default site
-docker compose exec --user www-data web drush uli --uri=blog.example.com   # same, for another site
+docker compose exec --user www-data web drush --uri=http://blog.example.com:8080 status
+docker compose exec --user www-data web drush uli --uri=http://localhost:8080            # one-time admin login link, default site
+docker compose exec --user www-data web drush uli --uri=http://blog.example.com:8080     # same, for another site
 docker compose exec --user www-data web drush user:password admin 'newpass' # set a real password instead, if you want one
 docker compose logs -f web
 docker compose down                                            # stop (add -v to also wipe the DB volume)
