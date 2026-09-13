@@ -5,5 +5,6 @@
 // edit the markers.
 $sites = [
   // MULTISITE_MAP_START
+  'umami.localhost' => 'umami',
   // MULTISITE_MAP_END
 ];
