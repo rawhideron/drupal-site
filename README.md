@@ -2,6 +2,7 @@
 
 ![Drupal](https://img.shields.io/badge/Drupal-11-0678BE?logo=drupal&logoColor=white)
 ![PHP](https://img.shields.io/badge/PHP-8.3-777BB4?logo=php&logoColor=white)
+![MariaDB](https://img.shields.io/badge/MariaDB-11-003545?logo=mariadb&logoColor=white)
 ![License](https://img.shields.io/badge/license-GPL--2.0--or--later-blue)
 
 Dockerized Drupal 11 with multisite support: one codebase/container stack, and
