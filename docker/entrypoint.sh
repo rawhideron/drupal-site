@@ -7,6 +7,12 @@ until php -r "new PDO('mysql:host=${DB_HOST:-db};port=${DB_PORT:-3306}', getenv(
 done
 echo "Database is up."
 
+# The bind-mounted /opt/drupal is owned by the host user, not root (who runs
+# this entrypoint and, by default, composer exec'd into the container), so
+# git refuses to touch it as an "unsafe" repo without this.
+git config --global --get-all safe.directory 2>/dev/null | grep -qx /opt/drupal \
+    || git config --global --add safe.directory /opt/drupal
+
 if [ ! -d /opt/drupal/vendor ]; then
     echo "Installing Drupal via Composer (first run, this can take a few minutes)..."
     composer install --no-interaction --no-progress
