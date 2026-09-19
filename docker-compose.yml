@@ -32,5 +32,20 @@ services:
       timeout: 5s
       retries: 5
 
+  npm:
+    image: jc21/nginx-proxy-manager:latest
+    restart: unless-stopped
+    ports:
+      - "8880:80"
+      - "8443:443"
+      - "127.0.0.1:81:81"
+    volumes:
+      - npm_data:/data
+      - npm_letsencrypt:/etc/letsencrypt
+    depends_on:
+      - web
+
 volumes:
   db_data:
+  npm_data:
+  npm_letsencrypt:

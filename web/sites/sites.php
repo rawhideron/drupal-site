@@ -5,6 +5,7 @@
 // edit the markers.
 $sites = [
   // MULTISITE_MAP_START
+  'umami.drupal.rawhideron.duckdns.org' => 'umami',
   'umami.localhost' => 'umami',
   // MULTISITE_MAP_END
 ];
