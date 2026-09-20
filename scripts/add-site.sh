@@ -56,6 +56,7 @@ cat >> "web/sites/${NAME}/settings.php" <<PHP
 ];
 \$settings['hash_salt'] = '${HASH_SALT_NEW}';
 \$settings['file_private_path'] = 'sites/${NAME}/private';
+include \$app_root . '/../docker/proxy-https.settings.php';
 PHP
 
 docker compose exec -T --user root web chown www-data:www-data \

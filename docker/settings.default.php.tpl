@@ -15,6 +15,8 @@ $databases['default']['default'] = [
 $settings['hash_salt'] = getenv('HASH_SALT') ?: 'change-me-in-production';
 $settings['file_private_path'] = 'sites/default/private';
 
+include $app_root . '/../docker/proxy-https.settings.php';
+
 if (file_exists(__DIR__ . '/settings.local.php')) {
   include __DIR__ . '/settings.local.php';
 }

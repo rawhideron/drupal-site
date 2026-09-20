@@ -42,6 +42,7 @@ services:
     volumes:
       - npm_data:/data
       - npm_letsencrypt:/etc/letsencrypt
+      - ./docker/npm/proxy.conf:/etc/nginx/conf.d/include/proxy.conf
     depends_on:
       - web
 

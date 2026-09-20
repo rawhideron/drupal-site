@@ -2,7 +2,9 @@
 
 ![Drupal](https://img.shields.io/badge/Drupal-11-0678BE?logo=drupal&logoColor=white)
 ![PHP](https://img.shields.io/badge/PHP-8.3-777BB4?logo=php&logoColor=white)
+![Apache](https://img.shields.io/badge/Apache-2.4-D22128?logo=apache&logoColor=white)
 ![MariaDB](https://img.shields.io/badge/MariaDB-11-003545?logo=mariadb&logoColor=white)
+![Nginx Proxy Manager](https://img.shields.io/badge/Nginx%20Proxy%20Manager-2-F15833?logo=nginxproxymanager&logoColor=white)
 ![License](https://img.shields.io/badge/license-GPL--2.0--or--later-blue)
 
 Dockerized Drupal 11 with multisite support: one codebase/container stack, and
@@ -129,12 +131,36 @@ in git, so on a fresh install do this in the UI at `http://localhost:81`:
 If a newly saved proxy host still serves NPM's "Default Site" page, reload
 nginx in the container: `docker compose exec npm nginx -s reload`.
 
-### Known limitation
+### How Drupal knows it's behind HTTPS
 
-Drupal isn't yet configured to trust the proxy, so it builds `http://` links
-without the port. For example, `/user` redirects to
-`http://drupal.rawhideron.duckdns.org/user/login`, so logging in through the
-public URL doesn't work yet. Direct access on `WEB_PORT` is unaffected.
+NPM forwards requests to `web` over plain HTTP, so two pieces make Drupal
+build `https://host:8443` URLs (otherwise a login redirects to
+`http://host/user/login`, which the router sends to the other service on
+80/443):
+
+- `docker/proxy-https.settings.php` is included from every site's
+  `settings.php` (the default-site template and `scripts/add-site.sh` add the
+  line for new sites). It sets Drupal's `reverse_proxy` settings so requests
+  from private-subnet peers (i.e. NPM) are trusted for `X-Forwarded-Proto` and
+  `X-Forwarded-Port`. Requests straight to `WEB_PORT` are unaffected.
+- `docker/npm/proxy.conf` is a copy of NPM's own `proxy.conf` with one added
+  line, `proxy_set_header X-Forwarded-Port 8443;`, mounted over the original.
+  NPM can't infer the port itself because it sees 443 inside the container.
+
+Notes:
+- The existing `settings.php` files are gitignored, so on a machine that
+  already has sites add
+  `include $app_root . '/../docker/proxy-https.settings.php';` to the end of
+  each one (they're read-only and owned by `www-data`; edit them via
+  `docker compose exec --user www-data web ...`).
+- The `proxy.conf` mount must not be read-only: NPM `chown`s it at startup and
+  fails to start otherwise. The file is root-owned for the same reason, so edit
+  it with `sudo`, then `docker compose restart npm`.
+- It's a snapshot of the upstream file. If you upgrade NPM, diff it against
+  `docker run --rm --entrypoint cat jc21/nginx-proxy-manager:latest /etc/nginx/conf.d/include/proxy.conf`
+  and carry over any upstream changes.
+- The port is hard-coded to 8443 in both places. If you change the published
+  HTTPS port, change both.
 
 ## Automatic security updates
 
@@ -187,5 +213,8 @@ docker compose down                                            # stop (add -v to
 - `web/sites/sites.php` — hostname → site-directory map, maintained by
   `scripts/add-site.sh`
 - `scripts/add-site.sh` — scaffolds a new site directory + database
+- `docker/proxy-https.settings.php` / `docker/npm/proxy.conf` — make Drupal
+  generate `https://…:8443` URLs behind NPM (see
+  [How Drupal knows it's behind HTTPS](#how-drupal-knows-its-behind-https))
 - `scripts/security-update.sh` — nightly security update run from the host's
   crontab (see [Automatic security updates](#automatic-security-updates))
