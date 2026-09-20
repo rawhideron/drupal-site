@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libzip-dev \
         libpq-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
-    && docker-php-ext-install -j"$(nproc)" gd pdo_mysql opcache zip \
+    && docker-php-ext-install -j"$(nproc)" gd exif pdo_mysql opcache zip \
     && a2enmod rewrite \
     && rm -rf /var/lib/apt/lists/*
 

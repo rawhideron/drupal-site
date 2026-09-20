@@ -185,6 +185,64 @@ Output goes to `security-update.log` (gitignored). Check it with
 committing it. To install the job on a new machine, add the line above with
 `crontab -e`, adjusting the path.
 
+## Importing photos from the USB drive
+
+`scripts/import-images.sh` copies the JPG/PNG/GIF files from the Samsung USB
+drive's `Disk1Pictures` and `Disk2Pictures` folders into a single folder,
+`web/sites/default/files/photos/`, served at
+`/sites/default/files/photos/<file>`:
+
+```bash
+scripts/import-images.sh                                  # both folders, drive at /media/$USER/Samsung USB
+scripts/import-images.sh "/media/$USER/Samsung USB" Disk1Pictures Disk2Pictures   # other root / folders
+```
+
+- Folders are processed in the order given. The first keeps its file names; in
+  later ones, a file whose name is already taken (case-insensitive) gets the
+  folder label added before the extension. 37 of the `Disk2Pictures` files
+  collide with `Disk1Pictures` (different photos, same camera-assigned name),
+  so `Disk2Pictures/DSC00003.JPG` becomes `DSC00003_Disk2.JPG`.
+- Renaming depends only on the drive's contents, so re-running is safe: files
+  already copied are skipped, and it never deletes anything. Keep the folder
+  order the same between runs, or names could map differently.
+- Files are written inside the `web` container as `www-data` (the `files`
+  directory isn't writable by the host user). The `web` container must be running.
+- This only copies files. To make them show up in Drupal's Media library, run
+  the next step.
+
+### Registering the photos as Media
+
+```bash
+docker compose exec -T --user www-data web drush php:script scripts/import-media.php
+```
+
+`scripts/import-media.php` creates a File entity and an Image Media entity for
+every file in `photos/`:
+
+- **Name and alt text** are the file name without its extension (e.g.
+  `DSC00003_Disk2`). The alt text is only a placeholder, since the image media
+  type requires one; replace it with real descriptions in the Media library.
+- **Created date** is the photo's EXIF capture date (the file dates on the
+  drive are mostly the 2020-12-31 copy date). Two files with no EXIF
+  (`cross_country.jpeg`, `Copy of image001.png`) fall back to the file date.
+  This needs PHP's `exif` extension, which the `Dockerfile` installs.
+- Re-running is safe: files that already have a Media entity are skipped. It
+  never deletes anything. To undo, delete the Media entities in the admin UI
+  (`/admin/content/media`).
+- **Cleaning up deleted photos:** by default Drupal keeps a file after its Media
+  is deleted. This site turns on `make_unused_managed_files_temporary`, so an
+  unused file is marked temporary and removed from disk by cron once it is over
+  6 hours old (`automated_cron` runs every 3 hours, on page visits, so expect
+  6-9+ hours). Re-adding the same file before then makes it permanent again.
+  The setting lives in the database, not in git, so on a fresh install run:
+
+  ```bash
+  docker compose exec -T --user www-data web drush config:set file.settings make_unused_managed_files_temporary true -y
+  ```
+
+  Don't re-run the import expecting a deleted photo to stay gone while its file
+  is still on disk: it will create the Media again.
+
 ## Useful commands
 
 ```bash
