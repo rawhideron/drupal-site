@@ -243,6 +243,15 @@ every file in `photos/`:
   Don't re-run the import expecting a deleted photo to stay gone while its file
   is still on disk: it will create the Media again.
 
+### Inserting media into articles
+
+The Basic HTML and Full HTML editors have an **Insert Drupal Media** button
+(next to the image button) that opens the Media library. It relies on the
+**Embed media** filter being enabled on the same text format. Like the setting
+above, this is configuration in the database, not in git, so on a fresh install
+redo it under *Configuration → Text formats and editors*: enable *Embed media*
+on the format, then drag *Drupal Media* into the editor toolbar.
+
 ## Useful commands
 
 ```bash
