@@ -39,6 +39,9 @@ services:
       - "8880:80"
       - "8443:443"
       - "127.0.0.1:81:81"
+    environment:
+      PUID: ${NPM_PUID:-1000}
+      PGID: ${NPM_PGID:-1000}
     volumes:
       - npm_data:/data
       - npm_letsencrypt:/etc/letsencrypt

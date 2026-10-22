@@ -154,8 +154,8 @@ Notes:
   each one (they're read-only and owned by `www-data`; edit them via
   `docker compose exec --user www-data web ...`).
 - The `proxy.conf` mount must not be read-only: NPM `chown`s it at startup and
-  fails to start otherwise. The file is root-owned for the same reason, so edit
-  it with `sudo`, then `docker compose restart npm`.
+  fails to start otherwise. It ends up owned by `NPM_PUID`/`NPM_PGID` (default
+  1000), so edit it directly, then `docker compose restart npm`.
 - It's a snapshot of the upstream file. If you upgrade NPM, diff it against
   `docker run --rm --entrypoint cat jc21/nginx-proxy-manager:latest /etc/nginx/conf.d/include/proxy.conf`
   and carry over any upstream changes.
